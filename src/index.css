@@ -1,0 +1,295 @@
+/* @sos-edit: false */
+:root {
+  --font-title: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-text: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-cifra: 'Roboto Mono', 'Courier New', monospace;
+
+  /* Cores - Tema Escuro Moderno (Premium) */
+  --bg-main: #0B0F19;
+  --bg-card: #151C2C;
+  --bg-card-hover: #1E293B;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  
+  --primary: #F97316; /* Laranja estilo Cifra Club moderno */
+  --primary-hover: #EA580C;
+  --primary-light: rgba(249, 115, 22, 0.1);
+  --border-color: #2D3748;
+  --focus-ring: #38BDF8;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}
+
+/* Reset Geral */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-text);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco Acessível */
+*:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* Estilo para Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Utilitários */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-title);
+  color: var(--text-primary);
+}
+
+/* Grid de Blocos */
+.block-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 24px 0;
+}
+
+.block-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform var(--transition-normal), border-color var(--transition-normal), background-color var(--transition-normal);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.block-card:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--primary);
+  transform: translateY(-4px);
+}
+
+.block-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary-light);
+  padding-bottom: 6px;
+}
+
+.block-songs-list {
+  list-style: none;
+  margin-top: 8px;
+}
+
+.block-songs-list li {
+  padding: 6px 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  border-bottom: 1px dashed rgba(255,255,255,0.05);
+}
+
+.block-songs-list li:last-child {
+  border-bottom: none;
+}
+
+/* Layout de Cifra (Cifra Club-like) */
+.cifra-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr 280px;
+  gap: 32px;
+  align-items: start;
+  margin-top: 24px;
+}
+
+@media (max-width: 1024px) {
+  .cifra-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Controles Laterais (Sidebar) */
+.sidebar-controls {
+  position: sticky;
+  top: 100px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-ctrl {
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex: 1;
+}
+
+.btn-ctrl:hover {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-ctrl.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* Cifra e Letras */
+.cifra-container {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+  overflow-x: auto;
+}
+
+/* Cifra Segmentada (Responsividade Incrível) */
+.cifra-line {
+  display: flex;
+  flex-wrap: wrap;
+  line-height: 2.4; /* Espaço para o acorde acima do texto */
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+}
+
+.cifra-segment {
+  display: inline-flex;
+  flex-direction: column;
+  position: relative;
+  margin-right: 2px;
+  vertical-align: bottom;
+}
+
+.cifra-chord {
+  font-family: var(--font-cifra);
+  font-weight: 700;
+  color: var(--primary);
+  position: absolute;
+  top: -1.2rem;
+  left: 0;
+  height: 1.2rem;
+  line-height: 1.2;
+  user-select: none; /* Evita copiar cifras ao selecionar letra */
+}
+
+.cifra-text {
+  font-family: var(--font-cifra);
+  white-space: pre;
+}
+
+.comment-line {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.95em;
+  margin: 12px 0 6px;
+}
+
+/* Barra lateral de acordes */
+.chords-sidebar {
+  position: sticky;
+  top: 100px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.chords-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.chord-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chord-item:hover {
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.chord-name {
+  font-family: var(--font-cifra);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+}

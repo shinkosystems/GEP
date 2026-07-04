@@ -1,0 +1,5 @@
+# @sos-edit: false
+node_modules
+dist
+.DS_Store
+*.local
