@@ -187,15 +187,97 @@ const ORIGINAL_SONG_BLOCKS: SongBlock[] = [
         artist: 'Tim e Vanessa',
         key: 'E',
         content: `
-[E]A bilha de barro tr[C#m]az a água pura
-[A]Para saciar a s[B7]ede do caminhante
-[E]Assim é a alma [C#m]simples e humilde
-[A]Que leva a mensagem [B7]a todo instante
+[Bb] Uo Uo Uo Uo  [Eb]Uoooooo[F]
 
-[F#m]Bilha bendita, [B7]vaso de amor
-[E]Transbordando a graça [C#m]do Criador
-[A]Dando de graça o que [F#m]de graça recebeu
-[A]O tesouro divino que o [B7]Pai nos deu
+
+[Bb] O evangelho nas areias
+[Eb] Áquila e Prisca, a família[Bb][Eb] uououoooo
+[Bb] Na pureza de bondade
+[Eb] Abrem suas portas ao errante[Bb]   [Eb] uououoooo
+
+[Refrão]
+
+[D#] És bem vindo à nossa casa
+[Bb] Toma a água, eis a bilha
+[Eb] Dessendenta nela[F] tua vi[Bb]da
+[Eb] Vem beber do [F]vaso que [Bb]sacia
+   
+[Gm]Ouço as histó[Dm]rias, tua [D#] casa, o teu pai
+[Gm]         [Dm]         [D#]
+Teu passado e minha agonia
+[Gm]         [Dm]         [D#]       [Eb]
+[Já enxergo agora, no trabalho, no tear
+[D#]       [Dm]
+Vou tecendo meu falar e
+[D#]                   [F]
+A nossa amizade é um   culto
+
+[Refrão]
+
+[D#]
+És bem vindo à nossa casa
+[Bb]
+Toma a água, eis a bilha
+Eb           F       Bb
+Dessendenta nela tua vida
+Eb            F       Bb
+Vem beber do vaso que sacia
+
+Gm         Dm
+Sou cristão confesso
+D#
+Digo mais, eu fui tão cego
+Gm         Dm         D#
+Que tantos remorsos carrego
+Gm         Dm
+No afã de ter sucesso
+D#
+Inaugurei perseguições
+Eb         Dm
+São incontáveis as ações
+D#                                 F
+Foi quando eu mergulhei o olhar em Estevão
+         D#   F    Bb
+Uo Uo Uo Uooo Uooo Uooo
+D#  F   Bb
+Uoooôoooôooo
+D#  F   Bb
+Uoooôoooôooo
+
+Gm        Dm     D#
+Devo ir embora, tua casa é um altar
+Gm           Dm        D#  Eb  F
+Sou estorvo à tua harmonia
+
+D#                      F
+És presente em nossa tenda
+D#                        F
+Qualquer um que se arrependa
+Eb         F            Bb
+E conosco sirva O Bom Amigo
+Eb           F           Bb
+Sois ovelha que volta ao aprisco
+Bb       Eb   F
+Uoooôoooôooo
+Bb       Eb   F
+Uoooôoooôooo
+
+[Refrão]
+
+D#
+És bem vindo à nossa casa
+Bb
+Toma a água, eis a bilha
+Eb          F        Bb
+Dessendenta nela tua vida
+Eb            F        Bb
+Vem beber do vaso que sacia
+        Eb   F
+Uoooôoooôooo
+Bb
+Uoooôooo
+  Eb           F        Bb
+… Pois serás o vaso que sacia
         `
       },
       {

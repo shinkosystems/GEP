@@ -136,15 +136,6 @@ h1, h2, h3, h4 {
   margin-top: 24px;
 }
 
-@media (max-width: 1024px) {
-  .cifra-layout {
-    grid-template-columns: 1fr;
-  }
-  .sidebar-controls, .chords-sidebar {
-    position: relative;
-    top: auto;
-  }
-}
 
 /* Controles Laterais (Sidebar) */
 .sidebar-controls {
@@ -296,6 +287,16 @@ h1, h2, h3, h4 {
   font-size: 1.1rem;
   color: var(--primary);
   margin-bottom: 8px;
+}
+
+@media (max-width: 1024px) {
+  .cifra-layout {
+    grid-template-columns: 1fr;
+  }
+  .sidebar-controls, .chords-sidebar {
+    position: relative;
+    top: auto;
+  }
 }
 
 /* ==========================================================================
