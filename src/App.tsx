@@ -2,10 +2,9 @@
 import { useState, useEffect } from 'react';
 import { SongList } from './components/SongList';
 import { SongView } from './components/SongView';
-import { Song, loadAllSongBlocks, saveSongEdit, resetAllSongEdits } from './data/songs';
+import { Song, SONG_BLOCKS } from './data/songs';
 
 function App() {
-  const [songBlocks, setSongBlocks] = useState(() => loadAllSongBlocks());
   const [currentSongId, setCurrentSongId] = useState<string | null>(null);
 
   // Efeito para sincronizar o estado da música selecionada com a URL (Hash)
@@ -21,17 +20,15 @@ function App() {
       }
     };
 
-    // Lê a rota no carregamento inicial da página
     handleHashChange();
 
-    // Ouve mudanças de hash (ex: quando clica em voltar no navegador)
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   // Encontra a música ativa com base no ID da URL
   const currentSong = currentSongId
-    ? songBlocks.flatMap(b => b.songs).find(s => s.id === currentSongId) || null
+    ? SONG_BLOCKS.flatMap(b => b.songs).find(s => s.id === currentSongId) || null
     : null;
 
   // Ao selecionar uma música, atualiza o hash da URL
@@ -42,19 +39,6 @@ function App() {
   // Ao voltar, limpa o hash
   const handleBack = () => {
     window.location.hash = '';
-  };
-
-  const handleSaveSong = (songId: string, updatedContent: string, updatedKey: string) => {
-    saveSongEdit(songId, { content: updatedContent, key: updatedKey });
-    setSongBlocks(loadAllSongBlocks());
-  };
-
-  const handleResetAll = () => {
-    if (window.confirm("Deseja realmente apagar todas as edições e restaurar as letras e cifras padrões?")) {
-      resetAllSongEdits();
-      setSongBlocks(loadAllSongBlocks());
-      window.location.hash = '';
-    }
   };
 
   return (
@@ -85,31 +69,6 @@ function App() {
           </div>
           
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <button 
-              onClick={handleResetAll}
-              style={{
-                background: 'none',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-secondary)',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '0.85rem',
-                fontWeight: 500,
-                transition: 'all var(--transition-fast)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#EF4444';
-                e.currentTarget.style.color = '#EF4444';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-color)';
-                e.currentTarget.style.color = 'var(--text-secondary)';
-              }}
-              aria-label="Restaurar músicas padrão"
-            >
-              🔄 Restaurar Padrões
-            </button>
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Acessível & Responsivo</span>
           </div>
         </div>
@@ -118,9 +77,9 @@ function App() {
       {/* Conteúdo Principal */}
       <main style={{ minHeight: 'calc(100vh - 120px)' }}>
         {currentSong ? (
-          <SongView song={currentSong} onBack={handleBack} onSaveSong={handleSaveSong} />
+          <SongView song={currentSong} onBack={handleBack} />
         ) : (
-          <SongList songBlocks={songBlocks} onSelectSong={handleSelectSong} />
+          <SongList songBlocks={SONG_BLOCKS} onSelectSong={handleSelectSong} />
         )}
       </main>
 

@@ -14,7 +14,7 @@ export interface SongBlock {
   songs: Song[];
 }
 
-const ORIGINAL_SONG_BLOCKS: SongBlock[] = [
+export const SONG_BLOCKS: SongBlock[] = [
   {
     id: 'block-a',
     name: 'Bloco A',
@@ -204,79 +204,47 @@ const ORIGINAL_SONG_BLOCKS: SongBlock[] = [
    
 [Gm]Ouço as histó[Dm]rias, tua [D#] casa, o teu pai
 [Gm]Teu passado [Dm]e minha ag[D#]onia
-[Gm]         [Dm]         [D#]       [Eb]
-[Já enxergo agora, no trabalho, no tear
-[D#]       [Dm]
-Vou tecendo meu falar e
-[D#]                   [F]
-A nossa amizade é um   culto
+[Gm]Já enxergo [Dm]agora, no t[D#]rabalho, [Eb]no tear
+[D#]Vou tecendo[Dm] meu falar e
+[D#]A nossa amizade é um [F]culto
 
 [Refrão]
 
-[D#]
-És bem vindo à nossa casa
-[Bb]
-Toma a água, eis a bilha
-Eb           F       Bb
-Dessendenta nela tua vida
-Eb            F       Bb
-Vem beber do vaso que sacia
+[D#]És bem vindo à nossa casa
+[Bb]Toma a água, eis a bilha
+[Eb]Dessendenta ne[F]la tua [Bb]vida
+[Eb]Vem beber do v[F]aso que [Bb]sacia
 
-Gm         Dm
-Sou cristão confesso
-D#
-Digo mais, eu fui tão cego
-Gm         Dm         D#
-Que tantos remorsos carrego
-Gm         Dm
-No afã de ter sucesso
-D#
-Inaugurei perseguições
-Eb         Dm
-São incontáveis as ações
-D#                                 F
-Foi quando eu mergulhei o olhar em Estevão
-         D#   F    Bb
-Uo Uo Uo Uooo Uooo Uooo
-D#  F   Bb
-Uoooôoooôooo
-D#  F   Bb
-Uoooôoooôooo
+[Gm]Sou cristão [Dm]confesso
+[D#]Digo mais, eu fui tão cego
+[Gm]Que tantos [Dm]remorsos ca[D#]rrego
+[Gm]No afã de t[Dm]er sucesso
+[D#]Inaugurei perseguições
+[Eb]São incontá[Dm]veis as ações
+[D#]Foi quando eu mergulhei o olhar em [F]Estevão
+Uo Uo Uo [D#]Uooo [F]Uooo [Bb]Uooo
+[D#]Uooo[F]ôooo[BB]ôooo
+[D#]Uooo[F]ôooo[BB]ôooo
 
-Gm        Dm     D#
-Devo ir embora, tua casa é um altar
-Gm           Dm        D#  Eb  F
-Sou estorvo à tua harmonia
+[Gm]Devo ir em[Dm]bora, tu[D#]a casa é um altar
+[Gm]Sou estorvo à [Dm] tua harmo[D#]   [Eb]   [F]nia
 
-D#                      F
-És presente em nossa tenda
-D#                        F
-Qualquer um que se arrependa
-Eb         F            Bb
-E conosco sirva O Bom Amigo
-Eb           F           Bb
-Sois ovelha que volta ao aprisco
-Bb       Eb   F
-Uoooôoooôooo
-Bb       Eb   F
-Uoooôoooôooo
+[D#]És presente em nossa ten[F]da
+[D#]Qualquer um que se arrepen[F]da
+[Eb]E conosco s[f]irva O Bom Am[Bb]igo
+[Eb]Sois ovelha [F]que volta ao [Bb]aprisco
+[D#]Uooo[F]ôooo[BB]ôooo
+[D#]Uooo[F]ôooo[BB]ôooo
 
 [Refrão]
 
-D#
-És bem vindo à nossa casa
-Bb
-Toma a água, eis a bilha
-Eb          F        Bb
-Dessendenta nela tua vida
-Eb            F        Bb
-Vem beber do vaso que sacia
-        Eb   F
-Uoooôoooôooo
-Bb
-Uoooôooo
-  Eb           F        Bb
-… Pois serás o vaso que sacia
+[D#]És bem vindo à nossa casa
+[Bb]Toma a água, eis a bilha
+[Eb]Dessendenta ne[F]la tua [Bb]vida
+[Eb]Vem beber do v[F]aso que sa[Bb]cia
+Uoooôoooô[Eb]ooo [F]
+[Bb]Uoooôooo
+… [Eb]Pois serás o [F]vaso que [Bb]sacia
         `
       },
       {
@@ -575,55 +543,4 @@ Uoooôooo
   }
 ];
 
-// Carrega as músicas combinando o catálogo inicial com as edições no localStorage
-export function loadAllSongBlocks(): SongBlock[] {
-  const storedEdits = localStorage.getItem('gep-cifras-edits');
-  if (!storedEdits) {
-    return ORIGINAL_SONG_BLOCKS;
-  }
 
-  try {
-    const edits: { [songId: string]: Partial<Song> } = JSON.parse(storedEdits);
-    return ORIGINAL_SONG_BLOCKS.map(block => ({
-      ...block,
-      songs: block.songs.map(song => {
-        if (edits[song.id]) {
-          return {
-            ...song,
-            ...edits[song.id]
-          };
-        }
-        return song;
-      })
-    }));
-  } catch (e) {
-    console.error('Erro ao ler edições do localStorage', e);
-    return ORIGINAL_SONG_BLOCKS;
-  }
-}
-
-// Salva as alterações de uma música no localStorage
-export function saveSongEdit(songId: string, updatedFields: Partial<Song>): void {
-  const storedEdits = localStorage.getItem('gep-cifras-edits');
-  let edits: { [songId: string]: Partial<Song> } = {};
-
-  if (storedEdits) {
-    try {
-      edits = JSON.parse(storedEdits);
-    } catch (e) {
-      console.error('Erro ao ler edições antigas', e);
-    }
-  }
-
-  edits[songId] = {
-    ...(edits[songId] || {}),
-    ...updatedFields
-  };
-
-  localStorage.setItem('gep-cifras-edits', JSON.stringify(edits));
-}
-
-// Restaura os padrões
-export function resetAllSongEdits(): void {
-  localStorage.removeItem('gep-cifras-edits');
-}
