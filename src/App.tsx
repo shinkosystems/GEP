@@ -1,23 +1,51 @@
 // @sos-edit: false
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SongList } from './components/SongList';
 import { SongView } from './components/SongView';
 import { Song, loadAllSongBlocks, saveSongEdit, resetAllSongEdits } from './data/songs';
 
 function App() {
   const [songBlocks, setSongBlocks] = useState(() => loadAllSongBlocks());
-  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [currentSongId, setCurrentSongId] = useState<string | null>(null);
 
-  // Recarrega música selecionada se o catálogo geral atualizar
-  const currentSong = selectedSong 
-    ? songBlocks.flatMap(b => b.songs).find(s => s.id === selectedSong.id) || selectedSong
+  // Efeito para sincronizar o estado da música selecionada com a URL (Hash)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      const songMatch = hash.match(/^#\/musica\/([a-zA-Z0-9_-]+)$/);
+      
+      if (songMatch) {
+        setCurrentSongId(songMatch[1]);
+      } else {
+        setCurrentSongId(null);
+      }
+    };
+
+    // Lê a rota no carregamento inicial da página
+    handleHashChange();
+
+    // Ouve mudanças de hash (ex: quando clica em voltar no navegador)
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Encontra a música ativa com base no ID da URL
+  const currentSong = currentSongId
+    ? songBlocks.flatMap(b => b.songs).find(s => s.id === currentSongId) || null
     : null;
 
+  // Ao selecionar uma música, atualiza o hash da URL
+  const handleSelectSong = (song: Song) => {
+    window.location.hash = `#/musica/${song.id}`;
+  };
+
+  // Ao voltar, limpa o hash
+  const handleBack = () => {
+    window.location.hash = '';
+  };
+
   const handleSaveSong = (songId: string, updatedContent: string, updatedKey: string) => {
-    // Persiste no localStorage
     saveSongEdit(songId, { content: updatedContent, key: updatedKey });
-    
-    // Atualiza o estado do app
     setSongBlocks(loadAllSongBlocks());
   };
 
@@ -25,9 +53,7 @@ function App() {
     if (window.confirm("Deseja realmente apagar todas as edições e restaurar as letras e cifras padrões?")) {
       resetAllSongEdits();
       setSongBlocks(loadAllSongBlocks());
-      if (selectedSong) {
-        setSelectedSong(null);
-      }
+      window.location.hash = '';
     }
   };
 
@@ -45,12 +71,12 @@ function App() {
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div 
-            onClick={() => setSelectedSong(null)} 
+            onClick={handleBack} 
             style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
             role="button"
             tabIndex={0}
             aria-label="Ir para página inicial"
-            onKeyDown={(e) => { if (e.key === 'Enter') setSelectedSong(null); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleBack(); }}
           >
             <span style={{ fontSize: '1.75rem' }}>🎹</span>
             <span style={{ fontFamily: 'var(--font-title)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '0.05em' }}>
@@ -59,7 +85,6 @@ function App() {
           </div>
           
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            {/* Botão de Reset no cabeçalho */}
             <button 
               onClick={handleResetAll}
               style={{
@@ -93,9 +118,9 @@ function App() {
       {/* Conteúdo Principal */}
       <main style={{ minHeight: 'calc(100vh - 120px)' }}>
         {currentSong ? (
-          <SongView song={currentSong} onBack={() => setSelectedSong(null)} onSaveSong={handleSaveSong} />
+          <SongView song={currentSong} onBack={handleBack} onSaveSong={handleSaveSong} />
         ) : (
-          <SongList songBlocks={songBlocks} onSelectSong={setSelectedSong} />
+          <SongList songBlocks={songBlocks} onSelectSong={handleSelectSong} />
         )}
       </main>
 

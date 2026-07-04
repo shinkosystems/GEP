@@ -199,12 +199,11 @@ const ORIGINAL_SONG_BLOCKS: SongBlock[] = [
 
 [D#] És bem vindo à nossa casa
 [Bb] Toma a água, eis a bilha
-[Eb] Dessendenta nela[F] tua vi[Bb]da
+[Eb] Dessendenta ne[F]la tua [Bb]vida
 [Eb] Vem beber do [F]vaso que [Bb]sacia
    
 [Gm]Ouço as histó[Dm]rias, tua [D#] casa, o teu pai
-[Gm]         [Dm]         [D#]
-Teu passado e minha agonia
+[Gm]Teu passado [Dm]e minha ag[D#]onia
 [Gm]         [Dm]         [D#]       [Eb]
 [Já enxergo agora, no trabalho, no tear
 [D#]       [Dm]
