@@ -351,30 +351,99 @@ Vossos jovens profetizarão
         id: 'para-sempre',
         title: 'Para sempre em meu coração',
         artist: 'Tim e Vanessa',
-        key: 'G',
+        key: 'E',
         content: `
-[G]Para sempre em meu c[Em]oração guarda[C]rei a tua pa[D7]lavra
-[G]Como luz que guia [Em]meus passos no m[C]eio da estrada [D7]
-[Em]Na alegria ou no [Bm]sofrimento serei [C]teu servo f[G]iel
-[Am]Cantando a glória [D7]do Reino do Céu
-        `
+[Primeira Parte]
+
+E                            E7M
+Nem se eu pudesse ter o pôr do sol
+   A                              Am6
+A lua ou as estrelas, toda natureza
+E                           E7M
+Nem se eu tivesse todo ouro
+   A                               Am6
+E não tivesse um amigo... Nada teria
+A                      B7            
+  Pois quando eu começasse a me sentir 
+    G#m   C#m
+sozinho
+A               B7        E  E7
+Quem é que me consolaria?
+A               B7                  G#m  
+Mas Deus é bom botou você em meu caminho
+C#m
+
+                      F#m    B7
+Pra que não me falte alegria
+
+[Refrão]
+            E        E7M                 
+Você vai estar para sempre dentro do meu 
+     A
+coração
+         Am6    E
+Vou lembrar de nós
+              E7M                     A  
+Sempre que alguém contar esta canção!
+Am6
+
+
+[Segunda Parte]
+
+E                                  E7M
+Nem se eu soubesse muitas palavras
+A                                    Am6
+Nem se eu as transformasse em poesia
+E                              E7M
+Não diria tudo o que há pra dizer
+A                          Am6
+A inspiração de certo faltaria
+E               B7           G#m   C#m
+Mas se algum dia me faltar o seu abraço?
+A           B7            E  E7
+Não será triste a saudade
+A             B             G#m        C#m
+Pois sei que nos encontraremos no espaço
+       F#m           B7
+Meu amigo de verdade        `
       },
       {
         id: 'apenas-amar',
         title: 'Apenas Amar',
-        artist: 'Tim e Vanessa',
+        artist: 'Denis Soares',
         key: 'C',
         content: `
-[C]Não quero ouro, [Am]não quero o poder
-[F]Só quero aprender [G]a me dar e a ser
-[C]Estender a mão [Am]a quem cair
-[F]E um novo sorriso [G]ajudar a abrir
+  C                F7M              
+Todo o Céu se organiza para vir nos 
+ C            C7M
+transformar
+   C                F7M           G/C  
+O Cristo já nos auxilia para vida nova 
+    G
+alçar
+C                   F7M               
+Ondas de atos belos podem vir de nossas 
+    C          C7M
+próprias mãos
+C                F7M               G/C   
+Sentimentos triunfantes brotam naturais, 
+   G
+então
 
-[F]Apenas amar, [G]apenas servir
-[C]Com o Mestre da luz [Am]apenas seguir
-[F]Na caridade pura [G]meu porto achar
-[F]Apenas amar, [G7]apenas amar
-        `
+F7M           Em          F7M          Em
+Vou por dentro me preparar pra sem rebeldia
+ aceitar
+F7M         Em           F7M         G
+Invencível expande o amor em fraternidade
+
+F       F7M    C
+E eu desejo apenas amar, e todo um mar
+F    F7M        C
+De afetos cativar
+F    F7M                 C
+Uma luz vem pra resplandecer, dentro do ser
+F         F7M          C
+Para ao Pai glorificar        `
       },
       {
         id: 'amigo-presente',
