@@ -130,12 +130,11 @@ h1, h2, h3, h4 {
 /* Layout de Cifra (Cifra Club-like) */
 .cifra-layout {
   display: grid;
-  grid-template-columns: 240px 1fr 280px;
+  grid-template-columns: 1fr 280px;
   gap: 32px;
   align-items: start;
-  margin-top: 24px;
+  margin-top: 16px;
 }
-
 
 /* Controles Laterais (Sidebar) */
 .sidebar-controls {
@@ -196,6 +195,40 @@ h1, h2, h3, h4 {
   color: #fff;
 }
 
+/* Novo estilo para botões pequenos unificados */
+.btn-ctrl-sm {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.btn-ctrl-sm:hover:not(:disabled) {
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-ctrl-sm.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.btn-ctrl-sm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Cifra e Letras */
 .cifra-container {
   background-color: var(--bg-card);
@@ -210,7 +243,7 @@ h1, h2, h3, h4 {
 .cifra-line {
   display: flex;
   flex-wrap: wrap;
-  line-height: 2.4; /* Espaço para o acorde acima do texto */
+  line-height: 2.4;
   margin-bottom: 8px;
   white-space: pre-wrap;
 }
@@ -232,7 +265,7 @@ h1, h2, h3, h4 {
   left: 0;
   height: 1.2rem;
   line-height: 1.2;
-  user-select: none; /* Evita copiar cifras ao selecionar letra */
+  user-select: none;
 }
 
 .cifra-text {
@@ -250,16 +283,18 @@ h1, h2, h3, h4 {
 /* Barra lateral de acordes */
 .chords-sidebar {
   position: sticky;
-  top: 100px;
+  top: 245px;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 20px;
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
 }
 
 .chords-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-top: 16px;
 }
@@ -289,11 +324,77 @@ h1, h2, h3, h4 {
   margin-bottom: 8px;
 }
 
+/* Estrutura de Header e Controles Sticky unificados */
+.sticky-song-header-container {
+  position: sticky;
+  top: 65px; /* Altura do header do App */
+  background-color: var(--bg-main);
+  z-index: 90;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(44, 55, 89, 0.08);
+}
+
+.song-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.song-title-text {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.song-subtitle-text {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin: 2px 0 0;
+}
+
+.song-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 18px;
+  margin-top: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.control-item-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-label-inline {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.btn-group-inline {
+  display: flex;
+  gap: 4px;
+}
+
 @media (max-width: 1024px) {
   .cifra-layout {
     grid-template-columns: 1fr;
   }
-  .sidebar-controls, .chords-sidebar {
+  .chords-sidebar {
+    position: relative;
+    top: auto;
+    max-height: none;
+  }
+  .sticky-song-header-container {
     position: relative;
     top: auto;
   }
@@ -303,12 +404,10 @@ h1, h2, h3, h4 {
    ESTILOS MOBILE-FIRST (TELEFONES - MAX-WIDTH: 767px)
    ========================================================================== */
 @media (max-width: 767px) {
-  /* Esconde painéis desktop laterais no mobile */
   .desktop-only-aside {
     display: none !important;
   }
 
-  /* Ajustes gerais de espaçamento no telefone */
   .container {
     padding: 0 12px;
   }
@@ -322,7 +421,6 @@ h1, h2, h3, h4 {
     margin-bottom: 12px;
   }
 
-  /* Barra de Controle Inferior Fixa */
   .mobile-dock {
     position: fixed;
     bottom: 0;
@@ -364,7 +462,6 @@ h1, h2, h3, h4 {
     color: var(--primary);
   }
 
-  /* Gavetas Deslizantes (Bottom Sheets) */
   .bottom-sheet-backdrop {
     position: fixed;
     inset: 0;
@@ -416,7 +513,6 @@ h1, h2, h3, h4 {
     padding: 4px;
   }
 
-  /* Ajustes das colunas e grid no mobile */
   .block-grid {
     grid-template-columns: 1fr;
     gap: 16px;

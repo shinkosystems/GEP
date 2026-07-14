@@ -7,12 +7,11 @@ import { Song, SONG_BLOCKS } from './data/songs';
 function App() {
   const [currentSongId, setCurrentSongId] = useState<string | null>(null);
 
-  // Efeito para sincronizar o estado da música selecionada com a URL (Hash)
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
       const songMatch = hash.match(/^#\/musica\/([a-zA-Z0-9_-]+)$/);
-      
+
       if (songMatch) {
         setCurrentSongId(songMatch[1]);
       } else {
@@ -26,17 +25,14 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Encontra a música ativa com base no ID da URL
   const currentSong = currentSongId
     ? SONG_BLOCKS.flatMap(b => b.songs).find(s => s.id === currentSongId) || null
     : null;
 
-  // Ao selecionar uma música, atualiza o hash da URL
   const handleSelectSong = (song: Song) => {
     window.location.hash = `#/musica/${song.id}`;
   };
 
-  // Ao voltar, limpa o hash
   const handleBack = () => {
     window.location.hash = '';
   };
@@ -48,36 +44,37 @@ function App() {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        backgroundColor: 'rgba(255, 255, 255, 0.85)',
-        backdropFilter: 'blur(12px)',
+        backgroundColor: '#FFFFFF',
         borderBottom: '1px solid var(--border-color)',
         padding: '12px 0'
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div 
-            onClick={handleBack} 
+          <div
+            onClick={handleBack}
             style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
             role="button"
             tabIndex={0}
             aria-label="Ir para página inicial"
             onKeyDown={(e) => { if (e.key === 'Enter') handleBack(); }}
           >
-            <img 
-              src="/logo.jpg" 
-              alt="Logo GEP 120 Anos" 
-              style={{ 
-                height: '45px', 
-                width: '45px', 
-                borderRadius: '50%', 
-                border: '2px solid var(--primary)',
-                objectFit: 'cover' 
-              }} 
-            />
-            <span style={{ fontFamily: 'var(--font-title)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>
-              GEP <span style={{ color: 'var(--primary)' }}>CIFRAS</span>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              border: '1px solid var(--border-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#fff',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <span style={{ fontSize: '1.4rem' }}>🎧</span>
+            </div>
+            <span style={{ fontFamily: 'var(--font-title)', fontWeight: 700, fontSize: '1.25rem', color: 'var(--text-primary)' }}>
+              Queluzito <span style={{ color: 'var(--primary)' }}>Musical</span>
             </span>
           </div>
-          
+
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Acessível & Responsivo</span>
           </div>
@@ -103,7 +100,7 @@ function App() {
         color: 'var(--text-muted)'
       }}>
         <div className="container">
-          <p>© {new Date().getFullYear()} GEP Cifras. Desenvolvido para acessibilidade musical.</p>
+          <p>© {new Date().getFullYear()} Queluzito Musical. Desenvolvido para acessibilidade musical.</p>
         </div>
       </footer>
     </div>
