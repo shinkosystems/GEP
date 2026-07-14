@@ -9,96 +9,105 @@ interface ChordDiagramProps {
 
 export const ChordDiagram: React.FC<ChordDiagramProps> = ({ chord, instrument }) => {
   if (instrument === 'teclado') {
-    const whiteKeys = [
-      { index: 0, label: 'C' },
-      { index: 2, label: 'D' },
-      { index: 4, label: 'E' },
-      { index: 5, label: 'F' },
-      { index: 7, label: 'G' },
-      { index: 9, label: 'A' },
-      { index: 11, label: 'B' },
-      { index: 12, label: 'C' },
-      { index: 14, label: 'D' },
-      { index: 16, label: 'E' },
-      { index: 17, label: 'F' },
-      { index: 19, label: 'G' },
-      { index: 21, label: 'A' },
-      { index: 23, label: 'B' }
-    ];
-
-    const blackKeys = [
-      { index: 1, x: 18 },  // C#
-      { index: 3, x: 42 },  // D#
-      { index: 6, x: 80 },  // F#
-      { index: 8, x: 104 }, // G#
-      { index: 10, x: 128 },// A#
-      { index: 13, x: 168 },// C#
-      { index: 15, x: 192 },// D#
-      { index: 18, x: 230 },// F#
-      { index: 20, x: 254 },// G#
-      { index: 22, x: 278 } // A#
+    // Duas oitavas completas — notas cromáticas com índice 0=C a 23=B
+    const allNotes: { index: number; type: 'w' | 'b'; label: string }[] = [
+      { index: 0,  type: 'w', label: 'C'  },
+      { index: 1,  type: 'b', label: 'C#' },
+      { index: 2,  type: 'w', label: 'D'  },
+      { index: 3,  type: 'b', label: 'D#' },
+      { index: 4,  type: 'w', label: 'E'  },
+      { index: 5,  type: 'w', label: 'F'  },
+      { index: 6,  type: 'b', label: 'F#' },
+      { index: 7,  type: 'w', label: 'G'  },
+      { index: 8,  type: 'b', label: 'G#' },
+      { index: 9,  type: 'w', label: 'A'  },
+      { index: 10, type: 'b', label: 'A#' },
+      { index: 11, type: 'w', label: 'B'  },
+      { index: 12, type: 'w', label: 'C'  },
+      { index: 13, type: 'b', label: 'C#' },
+      { index: 14, type: 'w', label: 'D'  },
+      { index: 15, type: 'b', label: 'D#' },
+      { index: 16, type: 'w', label: 'E'  },
+      { index: 17, type: 'w', label: 'F'  },
+      { index: 18, type: 'b', label: 'F#' },
+      { index: 19, type: 'w', label: 'G'  },
+      { index: 20, type: 'b', label: 'G#' },
+      { index: 21, type: 'w', label: 'A'  },
+      { index: 22, type: 'b', label: 'A#' },
+      { index: 23, type: 'w', label: 'B'  },
     ];
 
     const activeKeys = getChordKeys(chord);
 
-    const whiteWidth = 22;
-    const whiteHeight = 80;
-    const blackWidth = 12;
-    const blackHeight = 48;
+    const wW = 19;  // largura de cada tecla branca
+    const wH = 72;  // altura das teclas brancas
+    const bW = 11;  // largura de cada tecla preta
+    const bH = 44;  // altura das teclas pretas
+    const gap = 1;  // espaço entre teclas brancas
+    const padX = 3; // padding horizontal
+
+    const whiteKeys = allNotes.filter(n => n.type === 'w');
+    const whitePositions: Record<number, number> = {};
+    whiteKeys.forEach((key, i) => {
+      whitePositions[key.index] = padX + i * (wW + gap);
+    });
+
+    const totalWidth = padX + whiteKeys.length * (wW + gap) + padX;
+    const svgHeight = wH + 12;
+
+    const blackKeys = allNotes.filter(n => n.type === 'b');
+
+    const getBlackX = (blackIndex: number): number => {
+      const prevWhite = allNotes.slice(0, blackIndex).reverse().find(n => n.type === 'w');
+      const nextWhite = allNotes.slice(blackIndex + 1).find(n => n.type === 'w');
+      if (!prevWhite || !nextWhite) return 0;
+      const x1 = whitePositions[prevWhite.index] + wW;
+      const x2 = whitePositions[nextWhite.index];
+      return (x1 + x2) / 2 - bW / 2;
+    };
 
     return (
       <div className="chord-diagram" style={{ textAlign: 'center' }} aria-label={`Diagrama de teclado para o acorde ${chord}`}>
         <div className="chord-name">{chord}</div>
-        <svg width="250" height="90" viewBox="0 0 310 90" style={{ background: '#111827', borderRadius: '8px', padding: '5px', margin: '0 auto', display: 'block' }}>
-          {whiteKeys.map((key, idx) => {
-            const x = idx * (whiteWidth + 1) + 2;
+        <svg
+          width="100%"
+          viewBox={`0 0 ${totalWidth} ${svgHeight}`}
+          style={{ background: '#111827', borderRadius: '8px', display: 'block' }}
+          aria-hidden="true"
+        >
+          {/* Teclas brancas — camada inferior */}
+          {whiteKeys.map((key) => {
+            const x = whitePositions[key.index];
             const isActive = activeKeys.includes(key.index);
             return (
-              <g key={key.index}>
+              <g key={`w-${key.index}`}>
                 <rect
-                  x={x}
-                  y={2}
-                  width={whiteWidth}
-                  height={whiteHeight}
+                  x={x} y={3}
+                  width={wW} height={wH}
                   fill={isActive ? '#F97316' : '#F9FAFC'}
-                  stroke="#0B0F19"
-                  strokeWidth="1"
-                  rx="2"
+                  stroke="#1F2937" strokeWidth="0.8" rx="2"
                 />
                 {isActive && (
-                  <circle
-                    cx={x + whiteWidth / 2}
-                    cy={whiteHeight - 12}
-                    r="4.5"
-                    fill="#FFF"
-                  />
+                  <circle cx={x + wW / 2} cy={3 + wH - 9} r={4} fill="#fff" opacity={0.9} />
                 )}
               </g>
             );
           })}
 
+          {/* Teclas pretas — camada superior */}
           {blackKeys.map((key) => {
+            const x = getBlackX(key.index);
             const isActive = activeKeys.includes(key.index);
-            const x = key.x;
             return (
-              <g key={key.index}>
+              <g key={`b-${key.index}`}>
                 <rect
-                  x={x}
-                  y={2}
-                  width={blackWidth}
-                  height={blackHeight}
-                  fill={isActive ? '#FB923C' : '#1F2937'}
-                  stroke="#0B0F19"
-                  strokeWidth="1"
-                  rx="1"
+                  x={x} y={3}
+                  width={bW} height={bH}
+                  fill={isActive ? '#FB923C' : '#111827'}
+                  stroke="#374151" strokeWidth="0.8" rx="1.5"
                 />
                 {isActive && (
-                  <circle
-                    cx={x + blackWidth / 2}
-                    cy={blackHeight - 8}
-                    r="3"
-                    fill="#FFF"
-                  />
+                  <circle cx={x + bW / 2} cy={3 + bH - 7} r={3} fill="#fff" opacity={0.9} />
                 )}
               </g>
             );
@@ -106,7 +115,7 @@ export const ChordDiagram: React.FC<ChordDiagramProps> = ({ chord, instrument })
         </svg>
       </div>
     );
-  } else {
+
     const frets = getGuitarChord(chord);
     
     let maxFret = 0;
