@@ -177,6 +177,11 @@ export const SongView: React.FC<SongViewProps> = ({ song, songBlocks, onBack }) 
   const prevSong = currentSongIdx > 0 ? blockSongs[currentSongIdx - 1] : null;
   const nextSong = currentSongIdx < blockSongs.length - 1 ? blockSongs[currentSongIdx + 1] : null;
 
+  // Busca o próximo bloco se este bloco foi finalizado
+  const currentBlockIdx = songBlocks.findIndex(b => b.id === currentBlock?.id);
+  const nextBlock = currentBlockIdx !== -1 && currentBlockIdx < songBlocks.length - 1 ? songBlocks[currentBlockIdx + 1] : null;
+  const firstSongOfNextBlock = nextBlock && nextBlock.songs.length > 0 ? nextBlock.songs[0] : null;
+
   const handleNavigate = (songId: string) => {
     window.location.hash = `#/musica/${songId}`;
   };
@@ -477,19 +482,40 @@ export const SongView: React.FC<SongViewProps> = ({ song, songBlocks, onBack }) 
               }}>
                 {currentBlock.name} ({currentSongIdx + 1}/{blockSongs.length})
               </span>
-              <button
-                onClick={() => nextSong && handleNavigate(nextSong.id)}
-                className="btn-ctrl"
-                disabled={!nextSong}
-                style={{
-                  opacity: nextSong ? 1 : 0.4,
-                  cursor: nextSong ? 'pointer' : 'not-allowed',
-                  padding: '10px 12px'
-                }}
-                aria-label="Próxima música do bloco"
-              >
-                Próxima ▶️
-              </button>
+              {nextSong ? (
+                <button
+                  onClick={() => handleNavigate(nextSong.id)}
+                  className="btn-ctrl"
+                  style={{ padding: '10px 12px', cursor: 'pointer' }}
+                  aria-label="Próxima música do bloco"
+                >
+                  Próxima ▶️
+                </button>
+              ) : firstSongOfNextBlock ? (
+                <button
+                  onClick={() => handleNavigate(firstSongOfNextBlock.id)}
+                  className="btn-ctrl active"
+                  style={{
+                    padding: '10px 12px',
+                    cursor: 'pointer',
+                    background: 'var(--primary)',
+                    color: '#fff',
+                    borderColor: 'var(--primary)'
+                  }}
+                  aria-label="Ir para a primeira música do próximo bloco"
+                >
+                  Próx. Bloco ➔
+                </button>
+              ) : (
+                <button
+                  className="btn-ctrl"
+                  disabled
+                  style={{ opacity: 0.4, cursor: 'not-allowed', padding: '10px 12px' }}
+                  aria-label="Não há mais blocos ou músicas"
+                >
+                  Próxima ▶️
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -668,6 +694,54 @@ export const SongView: React.FC<SongViewProps> = ({ song, songBlocks, onBack }) 
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Botão de navegação para o próximo bloco */}
+      {!nextSong && firstSongOfNextBlock && nextBlock && (
+        <section style={{
+          marginTop: '30px',
+          background: 'linear-gradient(135deg, var(--primary-light) 0%, rgba(140, 102, 31, 0.15) 100%)',
+          border: '1.5px solid var(--primary)',
+          borderRadius: '16px',
+          padding: '28px 24px',
+          textAlign: 'center',
+          boxShadow: 'var(--shadow-md)',
+          animation: 'fadeIn 0.4s ease-out'
+        }}>
+          <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '8px' }}>🎉 Fim do Bloco!</span>
+          <p style={{ color: 'var(--text-secondary)', margin: '0 0 16px 0', fontSize: '1rem' }}>
+            Você finalizou as músicas do bloco <strong>{currentBlock?.name}</strong>.
+          </p>
+          <button
+            onClick={() => handleNavigate(firstSongOfNextBlock.id)}
+            className="btn-ctrl active"
+            style={{
+              padding: '12px 24px',
+              fontSize: '1rem',
+              fontWeight: 600,
+              borderRadius: '10px',
+              border: 'none',
+              background: 'var(--primary)',
+              color: '#fff',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(140, 102, 31, 0.3)',
+              transition: 'transform 0.2s, background-color 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.03)';
+              e.currentTarget.style.background = 'var(--primary-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = 'var(--primary)';
+            }}
+          >
+            Ir para o próximo bloco: <strong>{nextBlock.name}</strong> ➔
+          </button>
         </section>
       )}
 
