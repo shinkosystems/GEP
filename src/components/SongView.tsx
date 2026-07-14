@@ -1,37 +1,64 @@
 // @sos-edit: false
 import React, { useState, useEffect, useRef } from 'react';
-import { Song, SONG_BLOCKS } from '../data/songs';
+import { Song, SongBlock } from '../data/songs';
 import { transposeChord, isChord, isChordLine } from '../utils/music';
 import { ChordDiagram } from './ChordDiagram';
 
 interface SongViewProps {
   song: Song;
+  songBlocks: SongBlock[];
   onBack: () => void;
 }
 
 type MobileSheetType = 'none' | 'tools' | 'chords';
 
-export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
+export const SongView: React.FC<SongViewProps> = ({ song, songBlocks, onBack }) => {
   const [transposeLevel, setTransposeLevel] = useState(0);
   const [fontSize, setFontSize] = useState(16); // px
   const [hideChords, setHideChords] = useState(false);
   const [instrument, setInstrument] = useState<'teclado' | 'violao'>('teclado');
   
+  // Estado para Gaveta Mobile (Bottom Sheet)
   const [activeSheet, setActiveSheet] = useState<MobileSheetType>('none');
 
+  // Rolagem automática
   const [isScrolling, setIsScrolling] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(2); // 1 a 5
   const scrollIntervalRef = useRef<number | null>(null);
 
+  // Referências para o gesto de pinça (Pinch-to-Zoom)
   const cifraContainerRef = useRef<HTMLDivElement>(null);
   const touchStartDistRef = useRef<number | null>(null);
   const baseFontSizeRef = useRef<number>(16);
 
+  // Sincroniza estado se a música mudar
+  const [notes, setNotes] = useState<Record<number, string>>({});
+  const [editingLineIdx, setEditingLineIdx] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState('');
+
+  // Carrega as anotações do localStorage para a música atual
+  useEffect(() => {
+    const savedNotes = localStorage.getItem(`notes_${song.id}`);
+    if (savedNotes) {
+      try {
+        setNotes(JSON.parse(savedNotes));
+      } catch (e) {
+        console.error("Erro ao carregar anotações", e);
+        setNotes({});
+      }
+    } else {
+      setNotes({});
+    }
+  }, [song]);
+
   useEffect(() => {
     setTransposeLevel(0);
     setActiveSheet('none');
+    setEditingLineIdx(null);
+    setEditingText('');
   }, [song]);
 
+  // Transpor tom em semitones
   const handleTranspose = (amount: number) => {
     setTransposeLevel(prev => {
       const next = prev + amount;
@@ -41,10 +68,12 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
     });
   };
 
+  // Zoom de fonte
   const handleZoom = (amount: number) => {
     setFontSize(prev => Math.min(Math.max(12, prev + amount), 40));
   };
 
+  // Efeito para tratar o Gesto de Pinça (Pinch-to-Zoom) na Cifra
   useEffect(() => {
     const container = cifraContainerRef.current;
     if (!container) return;
@@ -61,7 +90,7 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2 && touchStartDistRef.current !== null) {
-        e.preventDefault();
+        e.preventDefault(); // Evita o zoom nativo do viewport inteiro
 
         const t1 = e.touches[0];
         const t2 = e.touches[1];
@@ -92,6 +121,7 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
     };
   }, [fontSize]);
 
+  // Controle de rolagem automática
   useEffect(() => {
     if (isScrolling) {
       const intervalTime = 100 / scrollSpeed;
@@ -112,6 +142,7 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
     };
   }, [isScrolling, scrollSpeed]);
 
+  // Atalhos de Teclado Acessíveis
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -125,14 +156,21 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
       } else if (e.key === '-') {
         e.preventDefault();
         handleZoom(-2);
+      } else if (e.key === 'ArrowRight' && isScrolling) {
+        e.preventDefault();
+        setScrollSpeed(prev => Math.min(5, prev + 1));
+      } else if (e.key === 'ArrowLeft' && isScrolling) {
+        e.preventDefault();
+        setScrollSpeed(prev => Math.max(1, prev - 1));
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isScrolling]);
 
-  const currentBlock = SONG_BLOCKS.find(b => b.songs.some(s => s.id === song.id));
+  // Busca o bloco ao qual esta música pertence
+  const currentBlock = songBlocks.find(b => b.songs.some(s => s.id === song.id));
   const blockSongs = currentBlock ? currentBlock.songs : [];
   const currentSongIdx = blockSongs.findIndex(s => s.id === song.id);
   
@@ -143,12 +181,14 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
     window.location.hash = `#/musica/${songId}`;
   };
 
+  // Processa e extrai todos os acordes únicos da cifra para exibir diagramas
   const getUniqueChords = (): string[] => {
     const chords: string[] = [];
     const lines = song.content.trim().split('\n');
 
     for (const line of lines) {
       if (isChordLine(line)) {
+        // Formato tradicional: extrai palavras que são acordes
         const tokens = line.trim().split(/\s+/);
         for (const token of tokens) {
           if (isChord(token)) {
@@ -159,12 +199,16 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
           }
         }
       } else {
+        // Formato ChordPro: extrai o que estiver dentro de [ ]
         const regex = /\[([^\]]+)\]/g;
         let match;
         while ((match = regex.exec(line)) !== null) {
-          const transposed = transposeChord(match[1], transposeLevel);
-          if (!chords.includes(transposed)) {
-            chords.push(transposed);
+          const token = match[1];
+          if (isChord(token)) {
+            const transposed = transposeChord(token, transposeLevel);
+            if (!chords.includes(transposed)) {
+              chords.push(transposed);
+            }
           }
         }
       }
@@ -172,6 +216,27 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
     return chords;
   };
 
+  const handleSaveNote = (lineIdx: number) => {
+    const updatedNotes = { ...notes };
+    if (editingText.trim()) {
+      updatedNotes[lineIdx] = editingText;
+    } else {
+      delete updatedNotes[lineIdx];
+    }
+    setNotes(updatedNotes);
+    localStorage.setItem(`notes_${song.id}`, JSON.stringify(updatedNotes));
+    setEditingLineIdx(null);
+    setEditingText('');
+  };
+
+  const handleDeleteNote = (lineIdx: number) => {
+    const updatedNotes = { ...notes };
+    delete updatedNotes[lineIdx];
+    setNotes(updatedNotes);
+    localStorage.setItem(`notes_${song.id}`, JSON.stringify(updatedNotes));
+  };
+
+  // Renderiza a cifra dividida em linhas e segmentos (acordes + sílabas)
   const renderCifra = () => {
     const lines = song.content.trim().split('\n');
 
@@ -180,12 +245,12 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
         return <div key={lineIdx} style={{ height: '1.5em' }} aria-hidden="true" />;
       }
 
-      if (line.startsWith('#') || (line.startsWith('(') && line.endsWith(')'))) {
-        return <div key={lineIdx} className="comment-line">{line}</div>;
-      }
+      let lineElement: React.ReactNode = null;
 
-      if (isChordLine(line)) {
-        if (hideChords) return null;
+      if (line.startsWith('#') || (line.startsWith('(') && line.endsWith(')'))) {
+        lineElement = <div className="comment-line">{line}</div>;
+      } else if (isChordLine(line)) {
+        if (hideChords) return null; // Oculta a linha de acordes se hideChords for true
 
         const regex = /\S+/g;
         let match;
@@ -234,46 +299,119 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
           lastOriginalEndIndex = item.startIndex + item.length;
         });
 
-        return (
-          <div key={lineIdx} className="cifra-line" style={{ display: 'block', lineHeight: '1.5', fontFamily: 'var(--font-cifra)' }}>
+        lineElement = (
+          <div className="cifra-line" style={{ display: 'block', lineHeight: '1.5', fontFamily: 'var(--font-cifra)' }}>
             {elements}
+          </div>
+        );
+      } else {
+        // Caso 2: Formato ChordPro (cifras inline [Chord]letra)
+        const segments: { chord: string; text: string }[] = [];
+        const segmentRegex = /(?:\[([^\]]+)\])?([^\[]*)/g;
+        let match;
+        let hasChords = false;
+
+        while ((match = segmentRegex.exec(line)) !== null) {
+          const chord = match[1] || '';
+          const text = match[2] || '';
+          
+          if (chord || text) {
+            segments.push({
+              chord: chord ? transposeChord(chord, transposeLevel) : '',
+              text
+            });
+            if (chord) hasChords = true;
+          }
+          if (segmentRegex.lastIndex === match.index) {
+            segmentRegex.lastIndex++;
+          }
+        }
+
+        lineElement = (
+          <div className="cifra-line" style={{ marginTop: hasChords && !hideChords ? '1.2em' : '0.2em' }}>
+            {segments.map((seg, segIdx) => (
+              <span key={segIdx} className="cifra-segment">
+                {seg.chord && !hideChords && (
+                  <span className="cifra-chord" aria-hidden="true">
+                    {seg.chord}
+                  </span>
+                )}
+                <span className="cifra-text">{seg.text}</span>
+              </span>
+            ))}
           </div>
         );
       }
 
-      const segments: { chord: string; text: string }[] = [];
-      const segmentRegex = /(?:\[([^\]]+)\])?([^\[]*)/g;
-      let match;
-      let hasChords = false;
-
-      while ((match = segmentRegex.exec(line)) !== null) {
-        const chord = match[1] || '';
-        const text = match[2] || '';
-        
-        if (chord || text) {
-          segments.push({
-            chord: chord ? transposeChord(chord, transposeLevel) : '',
-            text
-          });
-          if (chord) hasChords = true;
-        }
-        if (segmentRegex.lastIndex === match.index) {
-          segmentRegex.lastIndex++;
-        }
-      }
+      const hasNote = notes[lineIdx] !== undefined;
+      const isEditing = editingLineIdx === lineIdx;
 
       return (
-        <div key={lineIdx} className="cifra-line" style={{ marginTop: hasChords && !hideChords ? '1.2em' : '0.2em' }}>
-          {segments.map((seg, segIdx) => (
-            <span key={segIdx} className="cifra-segment">
-              {seg.chord && !hideChords && (
-                <span className="cifra-chord" aria-hidden="true">
-                  {seg.chord}
-                </span>
-              )}
-              <span className="cifra-text">{seg.text}</span>
-            </span>
-          ))}
+        <div key={lineIdx} className="cifra-line-wrapper">
+          {!hasNote && !isEditing && (
+            <button
+              onClick={() => {
+                setEditingLineIdx(lineIdx);
+                setEditingText('');
+              }}
+              className="btn-add-note"
+              title="Adicionar anotação"
+              aria-label="Adicionar anotação"
+            >
+              ＋
+            </button>
+          )}
+
+          {lineElement}
+
+          {isEditing && (
+            <div className="note-input-container">
+              <input
+                type="text"
+                value={editingText}
+                onChange={(e) => setEditingText(e.target.value)}
+                placeholder="Escreva sua anotação..."
+                className="note-input"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSaveNote(lineIdx);
+                  } else if (e.key === 'Escape') {
+                    setEditingLineIdx(null);
+                  }
+                }}
+              />
+              <button onClick={() => handleSaveNote(lineIdx)} className="btn-note-save">
+                Salvar
+              </button>
+              <button onClick={() => setEditingLineIdx(null)} className="btn-note-cancel">
+                Cancelar
+              </button>
+            </div>
+          )}
+
+          {hasNote && !isEditing && (
+            <div className="note-box">
+              <span 
+                onClick={() => {
+                  setEditingLineIdx(lineIdx);
+                  setEditingText(notes[lineIdx]);
+                }}
+                style={{ cursor: 'pointer' }}
+                title="Clique para editar"
+              >
+                📝 {notes[lineIdx]}
+              </span>
+              <button 
+                onClick={() => handleDeleteNote(lineIdx)} 
+                className="btn-note-delete"
+                title="Excluir anotação"
+                aria-label="Excluir anotação"
+              >
+                🗑️
+              </button>
+            </div>
+          )}
         </div>
       );
     });
@@ -284,165 +422,189 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
   return (
     <div className="container" style={{ paddingBottom: '120px' }}>
       
-      {/* Container de Cabeçalho Sticky para que nada seja coberto durante o scroll */}
-      <div className="sticky-song-header-container">
-        
-        {/* Row 1: Título e Botões na mesma row */}
-        <div className="song-title-row">
-          <div>
-            <h1 className="song-title-text">{song.title}</h1>
-            <p className="song-subtitle-text">
-              {song.artist} | Tom original: <strong style={{ color: 'var(--primary)' }}>{song.key}</strong>
-            </p>
+      {/* Cabeçalho da Música com Navegação Unificada */}
+      <header style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginTop: '24px',
+        borderBottom: '1px solid var(--border-color)',
+        paddingBottom: '16px',
+        gap: '16px',
+        flexWrap: 'wrap'
+      }}>
+        {/* Esquerda: Título, Artista e Tom Original */}
+        <div style={{ flex: '1 1 300px' }}>
+          <h1 style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>{song.title}</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginTop: '4px', margin: 0 }}>
+            {song.artist} | Tom original: <strong style={{ color: 'var(--primary)' }}>{song.key}</strong>
+          </p>
+        </div>
+
+        {/* Direita: Botões de Controle e Navegação */}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button 
+            onClick={onBack}
+            className="btn-ctrl"
+            style={{ width: 'fit-content', padding: '10px 16px', gap: '8px' }}
+            aria-label="Voltar para a lista de músicas"
+          >
+            ⬅️ Voltar
+          </button>
+
+          {currentBlock && (
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button
+                onClick={() => prevSong && handleNavigate(prevSong.id)}
+                className="btn-ctrl"
+                disabled={!prevSong}
+                style={{
+                  opacity: prevSong ? 1 : 0.4,
+                  cursor: prevSong ? 'pointer' : 'not-allowed',
+                  padding: '10px 12px'
+                }}
+                aria-label="Música anterior do bloco"
+              >
+                ◀️ Anterior
+              </button>
+              <span style={{
+                fontFamily: 'var(--font-title)',
+                fontSize: '0.85rem',
+                color: 'var(--text-secondary)',
+                fontWeight: 600,
+                padding: '0 4px',
+                whiteSpace: 'nowrap'
+              }}>
+                {currentBlock.name} ({currentSongIdx + 1}/{blockSongs.length})
+              </span>
+              <button
+                onClick={() => nextSong && handleNavigate(nextSong.id)}
+                className="btn-ctrl"
+                disabled={!nextSong}
+                style={{
+                  opacity: nextSong ? 1 : 0.4,
+                  cursor: nextSong ? 'pointer' : 'not-allowed',
+                  padding: '10px 12px'
+                }}
+                aria-label="Próxima música do bloco"
+              >
+                Próxima ▶️
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Barra de Ajustes Horizontal (Desktop/Tablet) */}
+      <section className="toolbar-controls desktop-only-aside" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '20px',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '16px',
+        padding: '16px 24px',
+        marginTop: '20px',
+        boxShadow: 'var(--shadow-sm)',
+        flexWrap: 'wrap'
+      }} aria-label="Ajustes de cifragem">
+        {/* Tamanho da Fonte */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Texto:</span>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button onClick={() => handleZoom(-2)} className="btn-ctrl" style={{ padding: '6px 12px' }} aria-label="Diminuir fonte">-</button>
+            <button onClick={() => setFontSize(16)} className="btn-ctrl" style={{ padding: '6px 12px' }} aria-label="Restaurar tamanho padrão">A</button>
+            <button onClick={() => handleZoom(2)} className="btn-ctrl" style={{ padding: '6px 12px' }} aria-label="Aumentar fonte">+</button>
           </div>
+        </div>
 
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        {/* Tom / Transposição */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Tom:</span>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button onClick={() => handleTranspose(-1)} className="btn-ctrl" style={{ padding: '6px 12px' }} aria-label="Diminuir meio tom">♭</button>
             <button 
-              onClick={onBack}
-              className="btn-ctrl-sm"
-              style={{ display: 'flex', gap: '6px', alignItems: 'center' }}
-              aria-label="Voltar para a lista de músicas"
+              onClick={() => setTransposeLevel(0)} 
+              className="btn-ctrl active" 
+              style={{ padding: '6px 16px', minWidth: '80px' }}
+              aria-label={`Tom atual transposto em ${transposeLevel} semitones`}
             >
-              ⬅️ Voltar
+              {transposeLevel === 0 ? 'Original' : `${transposeLevel > 0 ? '+' : ''}${transposeLevel}`}
             </button>
+            <button onClick={() => handleTranspose(1)} className="btn-ctrl" style={{ padding: '6px 12px' }} aria-label="Aumentar meio tom">♯</button>
+          </div>
+        </div>
 
-            {currentBlock && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <button
-                  onClick={() => prevSong && handleNavigate(prevSong.id)}
-                  className="btn-ctrl-sm"
-                  disabled={!prevSong}
-                  style={{ opacity: prevSong ? 1 : 0.4, cursor: prevSong ? 'pointer' : 'not-allowed' }}
-                  aria-label="Música anterior do bloco"
-                >
-                  ◀️ Anterior
-                </button>
-                <span style={{
-                  fontFamily: 'var(--font-title)',
-                  fontSize: '0.85rem',
-                  color: 'var(--text-secondary)',
-                  fontWeight: 600,
-                  padding: '0 4px'
-                }}>
-                  {currentBlock.name} ({currentSongIdx + 1}/{blockSongs.length})
-                </span>
-                <button
-                  onClick={() => nextSong && handleNavigate(nextSong.id)}
-                  className="btn-ctrl-sm"
-                  disabled={!nextSong}
-                  style={{
-                    opacity: nextSong ? 1 : 0.4,
-                    cursor: nextSong ? 'pointer' : 'not-allowed',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: '1.1',
-                    padding: '2px 12px',
-                    height: '36px'
-                  }}
-                  aria-label="Próxima música do bloco"
-                >
-                  <span>Próxima</span>
-                  <span style={{ fontSize: '0.75rem' }}>▶️</span>
-                </button>
+        {/* Rolagem Automática */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Rolagem:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              onClick={() => setIsScrolling(!isScrolling)} 
+              className={`btn-ctrl ${isScrolling ? 'active' : ''}`}
+              style={{ padding: '6px 16px', gap: '8px', minWidth: '150px' }}
+              aria-label={isScrolling ? 'Pausar rolagem automática' : 'Iniciar rolagem automática'}
+            >
+              {isScrolling ? '⏸️ Pausar (Espaço)' : '▶️ Rolar (Espaço)'}
+            </button>
+            {isScrolling && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Velocidade: {scrollSpeed}</span>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="5" 
+                  value={scrollSpeed} 
+                  onChange={(e) => setScrollSpeed(Number(e.target.value))} 
+                  style={{ width: '80px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                />
               </div>
             )}
           </div>
         </div>
 
-        {/* Row 2: Container de tom e afins (embaixo da row do título) */}
-        <div className="song-controls-row">
-          {/* TEXTO */}
-          <div className="control-item-inline">
-            <span className="control-label-inline">TEXTO:</span>
-            <div className="btn-group-inline">
-              <button onClick={() => handleZoom(-2)} className="btn-ctrl-sm">-</button>
-              <button onClick={() => setFontSize(16)} className="btn-ctrl-sm">A</button>
-              <button onClick={() => handleZoom(2)} className="btn-ctrl-sm">+</button>
-            </div>
-          </div>
-
-          {/* TOM */}
-          <div className="control-item-inline">
-            <span className="control-label-inline">TOM:</span>
-            <div className="btn-group-inline">
-              <button onClick={() => handleTranspose(-1)} className="btn-ctrl-sm">♭</button>
-              <button 
-                onClick={() => setTransposeLevel(0)} 
-                className="btn-ctrl-sm active"
-                style={{ minWidth: '70px' }}
-              >
-                {transposeLevel === 0 ? 'Original' : `${transposeLevel > 0 ? '+' : ''}${transposeLevel}`}
-              </button>
-              <button onClick={() => handleTranspose(1)} className="btn-ctrl-sm">♯</button>
-            </div>
-          </div>
-
-          {/* ROLAGEM (Botão de Start do Scroll no topo da página) */}
-          <div className="control-item-inline">
-            <span className="control-label-inline">ROLAGEM:</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <button 
-                onClick={() => setIsScrolling(!isScrolling)} 
-                className={`btn-ctrl-sm ${isScrolling ? 'active' : ''}`}
-                style={{ minWidth: '130px' }}
-              >
-                {isScrolling ? '⏸️ Pausar (Espaço)' : '▶️ Rolar (Espaço)'}
-              </button>
-              {isScrolling && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Velocidade: {scrollSpeed}</span>
-                  <input 
-                    type="range" 
-                    min="1" 
-                    max="5" 
-                    value={scrollSpeed} 
-                    onChange={(e) => setScrollSpeed(Number(e.target.value))} 
-                    style={{ width: '80px', accentColor: 'var(--primary)' }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* INSTRUMENTO */}
-          <div className="control-item-inline">
-            <span className="control-label-inline">INSTRUMENTO:</span>
-            <div className="btn-group-inline">
-              <button 
-                onClick={() => setInstrument('teclado')} 
-                className={`btn-ctrl-sm ${instrument === 'teclado' ? 'active' : ''}`}
-              >
-                🎹 Teclado
-              </button>
-              <button 
-                onClick={() => setInstrument('violao')} 
-                className={`btn-ctrl-sm ${instrument === 'violao' ? 'active' : ''}`}
-              >
-                🎸 Violão
-              </button>
-            </div>
-          </div>
-
-          {/* CIFRAS */}
-          <div className="control-item-inline">
-            <span className="control-label-inline">CIFRAS:</span>
+        {/* Seletor de Instrumento */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Instrumento:</span>
+          <div style={{ display: 'flex', gap: '6px' }}>
             <button 
-              onClick={() => setHideChords(!hideChords)} 
-              className={`btn-ctrl-sm ${hideChords ? 'active' : ''}`}
-              style={{ display: 'flex', gap: '6px', alignItems: 'center' }}
+              onClick={() => setInstrument('teclado')} 
+              className={`btn-ctrl ${instrument === 'teclado' ? 'active' : ''}`}
+              style={{ padding: '6px 12px' }}
+              aria-label="Visualizar acordes no teclado"
             >
-              {hideChords ? '👁️ Mostrar' : '🚫 Ocultar'}
+              🎹 Teclado
+            </button>
+            <button 
+              onClick={() => setInstrument('violao')} 
+              className={`btn-ctrl ${instrument === 'violao' ? 'active' : ''}`}
+              style={{ padding: '6px 12px' }}
+              aria-label="Visualizar acordes no violão"
+            >
+              🎸 Violão
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Layout de Visualização Principal */}
+        {/* Leitura Limpa */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Cifras:</span>
+          <button 
+            onClick={() => setHideChords(!hideChords)} 
+            className={`btn-ctrl ${hideChords ? 'active' : ''}`}
+            style={{ padding: '6px 16px' }}
+            aria-label={hideChords ? 'Mostrar cifras' : 'Ocultar cifras para leitura pura'}
+          >
+            {hideChords ? '👀 Mostrar' : '🔇 Ocultar'}
+          </button>
+        </div>
+      </section>
+
+      {/* Layout de Cifra de Duas Colunas */}
       <div className="cifra-layout">
         
-        {/* Coluna da Cifra (Centro) */}
+        {/* Coluna da Cifra (Centro/Esquerda) */}
         <main 
           ref={cifraContainerRef}
           className="cifra-container" 
@@ -452,22 +614,24 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
           {renderCifra()}
         </main>
 
-        {/* Coluna de Diagramas de Acordes (Direita - Omitida no mobile) */}
+        {/* Coluna de Diagramas de Teclado Sticky (Direita - Omitida no mobile) */}
         <aside className="chords-sidebar desktop-only-aside" aria-label="Diagramas dos acordes">
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
             {instrument === 'teclado' ? '🎹 Acordes no Teclado' : '🎸 Acordes no Violão'}
           </h2>
-          {uniqueChords.length === 0 ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '12px' }}>Sem acordes para exibir.</p>
-          ) : (
-            <div className="chords-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '16px' }}>
-              {uniqueChords.map(chord => (
-                <div key={chord} style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 6px' }}>
-                  <ChordDiagram chord={chord} instrument={instrument} />
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="chords-sidebar-scroll">
+            {uniqueChords.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sem acordes para exibir.</p>
+            ) : (
+              <div className="chords-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {uniqueChords.map(chord => (
+                  <div key={chord} style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 6px' }}>
+                    <ChordDiagram chord={chord} instrument={instrument} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </aside>
       </div>
 
@@ -498,14 +662,14 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
           className={`mobile-dock-btn ${hideChords ? 'active' : ''}`}
           aria-label={hideChords ? 'Mostrar cifras' : 'Ocultar cifras'}
         >
-          <span className="icon">{hideChords ? '👁️' : '🚫'}</span>
+          <span className="icon">{hideChords ? '👀' : '🔇'}</span>
           <span>{hideChords ? 'Mostrar Cifras' : 'Sem Cifras'}</span>
         </button>
 
         <button 
           onClick={() => setActiveSheet(activeSheet === 'chords' ? 'none' : 'chords')} 
           className={`mobile-dock-btn ${activeSheet === 'chords' ? 'active' : ''}`}
-          aria-label="Ver acordes"
+          aria-label={instrument === 'teclado' ? 'Ver acordes no teclado' : 'Ver acordes no violão'}
         >
           <span className="icon">{instrument === 'teclado' ? '🎹' : '🎸'}</span>
           <span>Acordes ({uniqueChords.length})</span>
@@ -549,7 +713,20 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
                 </div>
               </div>
 
-              {/* Instrumento */}
+              {/* Velocidade de Rolagem */}
+              <div className="control-group">
+                <label>Velocidade de Rolagem ({scrollSpeed})</label>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="5" 
+                  value={scrollSpeed} 
+                  onChange={(e) => setScrollSpeed(Number(e.target.value))} 
+                  style={{ width: '100%', height: '10px', accentColor: 'var(--primary)', marginTop: '8px' }}
+                />
+              </div>
+
+              {/* Instrumento Mobile */}
               <div className="control-group">
                 <label>Instrumento</label>
                 <div className="control-buttons">
@@ -569,19 +746,6 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
                   </button>
                 </div>
               </div>
-
-              {/* Velocidade de Rolagem */}
-              <div className="control-group">
-                <label>Velocidade de Rolagem ({scrollSpeed})</label>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="5" 
-                  value={scrollSpeed} 
-                  onChange={(e) => setScrollSpeed(Number(e.target.value))} 
-                  style={{ width: '100%', height: '10px', accentColor: 'var(--primary)', marginTop: '8px' }}
-                />
-              </div>
             </div>
           </div>
         </>
@@ -593,7 +757,7 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
           <div className="bottom-sheet-backdrop" onClick={() => setActiveSheet('none')} />
           <div className="bottom-sheet" role="dialog" aria-modal="true" aria-label="Gaveta de Acordes">
             <div className="bottom-sheet-header">
-              <h3>{instrument === 'teclado' ? '🎹 Acordes no Teclado' : '🎸 Acordes no Violão'}</h3>
+              <h3>{instrument === 'teclado' ? '🎹 Acordes da Música' : '🎸 Acordes no Violão'}</h3>
               <button className="bottom-sheet-close" onClick={() => setActiveSheet('none')} aria-label="Fechar gaveta">✕</button>
             </div>
             {uniqueChords.length === 0 ? (
@@ -602,7 +766,7 @@ export const SongView: React.FC<SongViewProps> = ({ song, onBack }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '55vh', overflowY: 'auto', paddingRight: '5px' }}>
                 {uniqueChords.map(chord => (
                   <div key={chord} style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '16px 8px' }}>
-                    <ChordDiagram chord={chord} instrument={instrument} />
+                     <ChordDiagram chord={chord} instrument={instrument} />
                   </div>
                 ))}
               </div>

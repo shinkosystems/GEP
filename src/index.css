@@ -527,3 +527,356 @@ h1, h2, h3, h4 {
 @keyframes slideUp {
   to { transform: translateY(0); }
 }
+
+/* --- Estilos para Anotações Inline --- */
+
+.cifra-line-wrapper {
+  position: relative;
+  display: block;
+  padding-left: 28px;
+  margin-left: -28px;
+  transition: background-color var(--transition-fast);
+}
+
+.cifra-line-wrapper:hover {
+  background-color: rgba(140, 102, 31, 0.03);
+  border-radius: 4px;
+}
+
+/* O botão de adicionar anotação flutuante à esquerda */
+.btn-add-note {
+  position: absolute;
+  left: 2px;
+  top: 6px; /* alinhado ao topo da linha */
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+  color: var(--primary);
+  font-size: 13px;
+  z-index: 5;
+  box-shadow: var(--shadow-sm);
+  padding: 0;
+  line-height: 1;
+}
+
+.cifra-line-wrapper:hover .btn-add-note {
+  opacity: 1;
+}
+
+.btn-add-note:hover {
+  background: var(--primary-light);
+  transform: scale(1.1);
+}
+
+/* O box da anotação */
+.note-box {
+  background-color: #FFFDE7;
+  border-left: 4px solid #FBC02D;
+  border-radius: 4px;
+  padding: 6px 12px;
+  margin: 4px 0 10px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-text);
+  font-size: 0.85rem;
+  color: #5D4037;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.note-box span {
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Edição de anotação */
+.note-input-container {
+  margin: 4px 0 10px 28px;
+  display: flex;
+  gap: 8px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.note-input {
+  flex: 1;
+  padding: 6px 12px;
+  border: 1.5px solid #FBC02D;
+  border-radius: 6px;
+  background-color: #FFFDE7;
+  font-family: var(--font-text);
+  font-size: 0.85rem;
+  color: #5D4037;
+  outline: none;
+}
+
+.note-input:focus {
+  border-color: #F57F17;
+  box-shadow: 0 0 0 2px rgba(251, 192, 45, 0.2);
+}
+
+.btn-note-save {
+  background-color: #FBC02D;
+  color: #5D4037;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.btn-note-save:hover {
+  background-color: #FBC02D;
+}
+
+.btn-note-cancel {
+  background-color: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.btn-note-cancel:hover {
+  background-color: var(--bg-card-hover);
+}
+
+.btn-note-delete {
+  background: transparent;
+  border: none;
+  color: #D32F2F;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.btn-note-delete:hover {
+  background: rgba(211, 47, 47, 0.08);
+}
+
+@media (max-width: 768px) {
+  .btn-add-note {
+    opacity: 0.6;
+    left: 2px;
+  }
+  .cifra-line-wrapper {
+    padding-left: 24px;
+    margin-left: -24px;
+  }
+  .note-box, .note-input-container {
+    margin-left: 24px;
+  }
+}
+
+/* --- Estilos para Drag & Drop e Modo Organizar --- */
+
+.organize-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn-toggle-organize {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.btn-toggle-organize.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.btn-toggle-organize:hover {
+  background-color: var(--bg-card-hover);
+}
+
+.btn-toggle-organize.active:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Quando arrasta por cima do bloco */
+.block-card.drag-over {
+  border: 2px dashed var(--primary) !important;
+  background-color: var(--primary-light) !important;
+  transform: translateY(-2px);
+}
+
+/* Item de música no modo de arraste */
+.song-drag-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  cursor: grab;
+  transition: background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+  user-select: none;
+  width: 100%;
+}
+
+.song-drag-item:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--text-muted);
+}
+
+.song-drag-item:active {
+  cursor: grabbing;
+}
+
+.song-drag-item.dragging {
+  opacity: 0.4;
+  border: 1.5px dashed var(--primary);
+}
+
+.drag-handle {
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  margin-right: 8px;
+  cursor: grab;
+  display: inline-block;
+}
+
+.block-songs-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.song-drag-item.drag-over-song {
+  border-top: 3px solid var(--primary) !important;
+  margin-top: 4px;
+}
+
+.song-drag-item.selected {
+  border: 1.5px solid var(--primary) !important;
+  background-color: var(--primary-light) !important;
+  box-shadow: 0 0 0 3px rgba(140, 102, 31, 0.2);
+}
+
+/* Modal de Login */
+.login-modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  z-index: 1020;
+  animation: fadeInModal 0.25s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.login-modal-header h3 {
+  font-size: 1.2rem;
+  color: var(--primary);
+  margin: 0;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Gaveta de Adicionar Música (AddSongPanel) */
+.add-song-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--bg-card);
+  border-left: 1px solid var(--border-color);
+  box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+  z-index: 1020;
+  padding: 30px 24px;
+  overflow-y: auto;
+  transform: translateX(100%);
+  animation: slideInRight 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInRight {
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .add-song-drawer {
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    max-width: 100%;
+    max-height: 85vh;
+    border-left: none;
+    border-top: 1px solid var(--border-color);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    transform: translateY(100%);
+    animation: slideUp 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
