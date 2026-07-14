@@ -614,18 +614,19 @@ export const SongView: React.FC<SongViewProps> = ({ song, songBlocks, onBack }) 
           {renderCifra()}
         </main>
 
-        {/* Coluna de Diagramas de Teclado Sticky (Direita - Omitida no mobile) */}
+        {/* Coluna de Diagramas Sticky (Direita - Desktop apenas) */}
         <aside className="chords-sidebar desktop-only-aside" aria-label="Diagramas dos acordes">
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 600, borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', marginBottom: '12px' }}>
             {instrument === 'teclado' ? '🎹 Acordes no Teclado' : '🎸 Acordes no Violão'}
+            <span style={{ fontSize: '0.8rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: '6px' }}>({uniqueChords.length})</span>
           </h2>
           <div className="chords-sidebar-scroll">
             {uniqueChords.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Sem acordes para exibir.</p>
             ) : (
-              <div className="chords-grid" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 {uniqueChords.map(chord => (
-                  <div key={chord} style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)', borderRadius: '12px', padding: '12px 6px' }}>
+                  <div key={chord} style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '8px 4px' }}>
                     <ChordDiagram chord={chord} instrument={instrument} />
                   </div>
                 ))}
@@ -634,6 +635,41 @@ export const SongView: React.FC<SongViewProps> = ({ song, songBlocks, onBack }) 
           </div>
         </aside>
       </div>
+
+      {/* Grade completa de acordes abaixo da cifra — visível em todos os tamanhos */}
+      {uniqueChords.length > 0 && (
+        <section style={{
+          marginTop: '40px',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '24px',
+          boxShadow: 'var(--shadow-sm)'
+        }} aria-label="Todos os acordes da música">
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '20px', color: 'var(--text-primary)' }}>
+            {instrument === 'teclado' ? '🎹' : '🎸'} Todos os Acordes
+            <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: '8px' }}>
+              {uniqueChords.length} acorde{uniqueChords.length !== 1 ? 's' : ''} nesta música
+            </span>
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+            gap: '16px'
+          }}>
+            {uniqueChords.map(chord => (
+              <div key={chord} style={{
+                background: 'var(--bg-card-hover)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '12px',
+                padding: '12px 8px'
+              }}>
+                <ChordDiagram chord={chord} instrument={instrument} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ==========================================================================
          RECURSOS E ELEMENTOS MOBILE (BARRA DE NAVEGAÇÃO E GAVETAS DESLIZANTES)
